@@ -1,0 +1,1 @@
+# fartcoin-dash
