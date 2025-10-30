@@ -1,41 +1,41 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>FartCoin Dash — LittleJS</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>💨 FartCoin Dash</title>
 <style>
-  html,body{
-    margin:0;
-    padding:0;
+  html,body {
+    margin:0; padding:0;
+    background:#0d1417;
     overflow:hidden;
-    background:#0b1114;
+    color:#cff6da;
     font-family:system-ui,sans-serif;
-    color:#9effc8;
   }
-  #overlay{
+  #overlay {
     position:fixed;
-    top:0;left:0;right:0;
-    background:rgba(0,0,0,0.5);
+    top:0; left:0; right:0;
     display:flex;
     justify-content:space-between;
     align-items:center;
+    background:rgba(0,0,0,0.5);
+    color:#fff;
     padding:6px 10px;
-    font-size:14px;
     z-index:10;
+    font-size:14px;
   }
-  button{
-    background:#3aff7c;
+  button {
+    background:#39f87c;
+    color:#022410;
+    font-weight:700;
     border:none;
-    padding:5px 10px;
-    border-radius:6px;
-    font-weight:600;
-    color:#002d16;
+    border-radius:5px;
+    padding:6px 10px;
     cursor:pointer;
   }
-  canvas{display:block;width:100vw;height:100vh;}
+  canvas {display:block; width:100vw; height:100vh;}
 </style>
-<script src="https://unpkg.com/littlejsengine/dist/littlejs.min.js"></script>
+<script src="https://unpkg.com/littlejsengine@latest/dist/littlejs.min.js"></script>
 <script defer src="game.js"></script>
 </head>
 <body>
