@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
   <title>💨 FartCoin Dash</title>
   <style>
     /* --- Base Styles --- */
     html,body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       background: #0d1417;
       overflow: hidden;
       font-family: system-ui, sans-serif;
@@ -16,6 +15,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      overscroll-behavior: none;
     }
     #game-container {
       position: relative;
@@ -24,10 +24,17 @@
       height: 100vh;
       max-height: 800px;
       aspect-ratio: 9 / 16;
-      background: #000;
+      /* "To the Moon" space background */
+      background: #000 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><g fill-opacity="0.3"><circle fill="%23fff" cx="50" cy="50" r="1.5"/><path fill="%23fff" d="M50 50m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0Z M10 10m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0Z M90 90m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0Z M10 90m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0Z M90 10m-1 0a1 1 0 1 0 2 0 1 1 0 1 0-2 0Z"/></g></svg>');
+      animation: space-scroll 60s linear infinite;
       border-radius: 20px;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
       overflow: hidden;
+      touch-action: none;
+    }
+    @keyframes space-scroll {
+      from { background-position: 0 0; }
+      to { background-position: 0 -1000px; }
     }
     canvas {
       display: block;
@@ -49,7 +56,7 @@
       z-index: 10;
       font-size: 14px;
     }
-    button {
+    button, .button {
       background: #39f87c;
       color: #022410;
       font-weight: 700;
@@ -57,6 +64,13 @@
       border-radius: 5px;
       padding: 6px 10px;
       cursor: pointer;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      text-decoration: none;
+    }
+    .button-secondary {
+      background: #4A5568;
+      color: #EDF2F7;
     }
     #errorLog {
       position: absolute;
@@ -74,22 +88,20 @@
       display: none; /* Hide by default */
     }
 
-    /* --- Gemini Modal Styles --- */
-    #modalOverlay {
+    /* --- Base Modal Styles --- */
+    .modal-overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: none; /* Hidden by default */
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
       justify-content: center;
       align-items: center;
       z-index: 1000;
       padding: 20px;
       box-sizing: border-box;
     }
-    #modalBox {
+    .modal-box {
       background: #1a202c;
       color: white;
       padding: 24px;
@@ -97,14 +109,16 @@
       text-align: center;
       width: 90%;
     }
-    #modalBox h2 {
-      margin: 0 0 10px;
-      color: #39f87c;
+    .modal-box h2 { margin: 0 0 10px; color: #39f87c; }
+    .modal-box p { margin: 0 0 20px; font-size: 1rem; line-height: 1.5; }
+    .modal-box button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      margin-top: 10px;
     }
-    #modalBox p {
-      margin: 0 0 20px;
-      font-size: 1.1rem;
-    }
+
+    /* --- Gemini Modal Styles --- */
     #modalBox #aiResult {
       font-style: italic;
       color: #a0aec0;
@@ -126,30 +140,100 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-    #modalBox button {
+    
+    /* --- Main Menu Styles --- */
+    #mainMenuOverlay { display: flex; } /* Show on load */
+    #mainMenuOverlay input {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       font-size: 1rem;
-      margin-top: 20px;
+      border-radius: 5px;
+      border: 2px solid #4A5568;
+      background: #2D3748;
+      color: white;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+      text-align: center;
     }
+    #leaderboard {
+      text-align: left;
+      margin-top: 20px;
+      font-family: monospace;
+      font-size: 1rem;
+      color: #A0AEC0;
+    }
+    #leaderboard h3 { margin: 0 0 10px; color: #39f87c; text-align: center; }
+    #leaderboard div {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 5px;
+    }
+    #leaderboard div:nth-child(odd) { background: #2D3748; }
+    #leaderboard .leader-name { color: #CBD5E0; }
+    #leaderboard .leader-score { color: #39f87c; font-weight: bold; }
+    .menu-buttons { display: flex; gap: 10px; margin-top: 20px; }
+    .menu-buttons button { width: 100%; margin: 0; }
+
+    /* --- Help Modal Styles --- */
+    #helpOverlay { display: none; } /* Hide on load */
+    #helpOverlay .modal-box { text-align: left; }
+    #helpOverlay kbd {
+      background: #4A5568;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-family: monospace;
+      font-size: 0.9em;
+      border-bottom: 2px solid #2D3748;
+    }
+    #helpOverlay ul { padding-left: 20px; }
   </style>
-  <!-- Load LittleJS Engine -->
-  <script src="https://unpkg.com/littlejsengine@latest/dist/littlejs.min.js"></script>
 </head>
 <body>
   
   <div id="game-container">
     <div id="overlay">
       <div>💨 <b>FartCoin Dash</b></div>
-      <div><button id="startBtn">Start</button></div>
+      <div><button id="pauseBtn">Pause</button></div>
     </div>
-    <!-- Error log is now hidden by default -->
     <div id="errorLog"></div>
+    <!-- Canvas is created by JS -->
   </div>
 
-  <!-- Gemini Modal HTML -->
-  <div id="modalOverlay">
-    <div id="modalBox">
+  <!-- Main Menu Modal -->
+  <div id="mainMenuOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>FartCoin Dash</h2>
+      <input type="text" id="usernameInput" placeholder="Enter Your Name" maxlength="12">
+      <button id="startGameBtn" class="button">Start Game</button>
+      <div class="menu-buttons">
+        <button id="helpBtn" class="button button-secondary">How to Play</button>
+        <button id="soundBtn" class="button button-secondary">Mute</button>
+      </div>
+      <div id="leaderboard">
+        <h3>Leaderboard</h3>
+        <!-- Scores will be injected here by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Modal -->
+  <div id="helpOverlay" class="modal-overlay">
+    <div class="modal-box">
+      <h2>How to Play</h2>
+      <ul>
+        <li><kbd>WASD</kbd> / <kbd>Arrows</kbd> to move.</li>
+        <li><b>Touch and Drag</b> the player to move on mobile.</li>
+        <li>Collect <b>Yellow Circles</b> to score +10 points.</li>
+        <li>Avoid <b>Grey Clouds</b> and <b>Red Spinners</b>!</li>
+        <li>Survive for 60 seconds!</li>
+      </ul>
+      <button id="helpCloseBtn" class="button">Close</button>
+    </div>
+  </div>
+
+  <!-- Gemini (Game Over) Modal -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal-box">
       <h2>Game Over!</h2>
       <p>Your Score: <span id="finalScore">0</span></p>
       <div id="aiResult">
@@ -162,20 +246,21 @@
   <!-- *** ALL GAME.JS CODE IS PASTED IN HERE *** -->
   <script>
     /*
-     * FartCoin Dash - All-in-One Version
-     * - FIX: Added default texture sheet to engineInit to fix rendering.
-     * - FIX: Moved "Press Start" text to be visible.
+     * FartCoin Dash - v4.1 (Fixes the invisible coin bug)
      */
+
+    // --- Global Error Catcher ---
+    window.onerror = function(message, source, lineno, colno, error) {
+      logToHTML(`ERROR: ${message} (line ${lineno})`, true);
+      return true;
+    };
 
     // --- Helper function to print to the screen ---
     function logToHTML(message, isError = false) {
       try {
         const errorLog = document.getElementById('errorLog');
         if (errorLog) {
-          // Un-hide the log if there's an error
-          if(isError) {
-            errorLog.style.display = 'block';
-          }
+          if(isError) errorLog.style.display = 'block';
           const entry = document.createElement('div');
           entry.textContent = message;
           if (isError) {
@@ -188,126 +273,339 @@
       } catch(e) { /* failsafe */ }
     }
 
-    // --- Global Error Catcher ---
-    window.onerror = function(message, source, lineno, colno, error) {
-      logToHTML(`ERROR: ${message} (line ${lineno})`, true);
-      return true;
-    };
 
-    // --- SCRIPT EXECUTION STARTS HERE ---
     try {
-      // Game Objects
-      let player, coins = [], clouds = [];
-      let score = 0, timeLeft = 60, running = false;
-      let sCoin, sHit;
-      const WORLD_SIZE = 15;
+      logToHTML('Script loading...');
 
+      // --- Game Setup ---
+      const container = document.getElementById('game-container');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      container.appendChild(canvas);
+
+      const GAME_WIDTH = 400;
+      const GAME_HEIGHT = 800;
+      canvas.width = GAME_WIDTH;
+      canvas.height = GAME_HEIGHT;
+
+      // --- Game State ---
+      let gameState = 'menu'; // 'menu', 'playing', 'paused', 'gameover'
+      let score = 0, timeLeft = 60, username = "Player1";
+      let player, coins = [], clouds = [], spinners = []; // NEW: spinners
+      let lastTime = 0;
+      let isMuted = false;
+      let playerHitTimer = 0;
+      let scoreFlashTimer = 0;
+      const WORLD_SIZE = { x: 180, y: 380 };
+
+      // --- Input Handling ---
+      let keys = {};
+      let isDragging = false;
+      let touchOffset = { x: 0, y: 0 };
+      window.addEventListener('keydown', e => keys[e.code] = true);
+      window.addEventListener('keyup', e => keys[e.code] = false);
+
+      // --- Sound ---
+      let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      function playBeep(freq = 300, duration = 0.1) {
+        if (isMuted || !audioCtx) return;
+        try {
+          if(audioCtx.state === 'suspended') { audioCtx.resume(); }
+          let osc = audioCtx.createOscillator();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          osc.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + duration);
+        } catch(e) { logToHTML(`Sound Error: ${e.message}`, true); }
+      }
+
+      // --- All UI Elements ---
+      const mainMenuOverlay = document.getElementById('mainMenuOverlay');
+      const helpOverlay = document.getElementById('helpOverlay');
       const modalOverlay = document.getElementById('modalOverlay');
+      const usernameInput = document.getElementById('usernameInput');
+      const startGameBtn = document.getElementById('startGameBtn');
+      const helpBtn = document.getElementById('helpBtn');
+      const soundBtn = document.getElementById('soundBtn');
+      const helpCloseBtn = document.getElementById('helpCloseBtn');
+      const leaderboardEl = document.getElementById('leaderboard');
+      const pauseBtn = document.getElementById('pauseBtn');
       const finalScoreEl = document.getElementById('finalScore');
       const aiResultEl = document.getElementById('aiResult');
       const playAgainBtn = document.getElementById('playAgainBtn');
 
-      function gameInit() {
+      // --- Leaderboard Logic ---
+      function getLeaderboard() {
         try {
-          cameraPos = vec2(0, 0);
-          cameraScale = 35; 
+          return JSON.parse(localStorage.getItem('fartDashLeaderboard')) || [];
+        } catch (e) { return []; }
+      }
 
-          player = new EngineObject(vec2(0, 0), vec2(1, 1));
-          player.color = new Color(0, 1, 0);
+      function saveLeaderboard(board) {
+        try {
+          localStorage.setItem('fartDashLeaderboard', JSON.stringify(board));
+        } catch (e) { logToHTML('Failed to save leaderboard', true); }
+      }
 
-          sCoin = new Sound([0,,0.2,,0.15,0.3,,0.3,,0.1]);
-          sHit = new Sound([0,,0.15,,0.3,0.25,,0.2,,0.2]);
-
-        } catch (e) {
-          logToHTML(`Error in gameInit: ${e.message}`, true);
+      function displayLeaderboard() {
+        const board = getLeaderboard();
+        leaderboardEl.innerHTML = '<h3>Leaderboard</h3>';
+        if (board.length === 0) {
+           leaderboardEl.innerHTML += '<div><span>No scores yet!</span></div>';
         }
+        board.forEach(entry => {
+          leaderboardEl.innerHTML += `
+            <div>
+              <span class="leader-name">${entry.name}</span>
+              <span class="leader-score">${entry.score}</span>
+            </div>
+          `;
+        });
+      }
+
+      function addScoreToLeaderboard(name, score) {
+        if (!name || name.trim() === "") name = "Player1";
+        const board = getLeaderboard();
+        board.push({ name: name, score: score });
+        board.sort((a, b) => b.score - a.score);
+        const newBoard = board.slice(0, 5);
+        saveLeaderboard(newBoard);
+      }
+
+      // --- Game Logic ---
+      function resetGame() {
+        logToHTML('Game Started!');
+        score = 0;
+        timeLeft = 60;
+        gameState = 'playing';
+        player = { x: 0, y: 0, width: 20, height: 20, color: '#0f0' };
+        coins = [];
+        clouds = [];
+        spinners = [];
+        for (let i = 0; i < 8; i++) spawnCoin();
+        for (let i = 0; i < 6; i++) spawnCloud(); // More clouds
+        for (let i = 0; i < 3; i++) spawnSpinner(); // NEW: Add spinners
+        lastTime = performance.now();
       }
 
       function spawnCoin() {
-        const coin = new EngineObject(randInCircle(vec2(0,0), WORLD_SIZE), vec2(0.6, 0.6));
-        coin.color = new Color(1, 1, 0);
-        coin.type = 'coin';
-        coins.push(coin);
+        coins.push({
+          x: Math.random() * WORLD_SIZE.x * 2 - WORLD_SIZE.x,
+          y: Math.random() * WORLD_SIZE.y * 2 - WORLD_SIZE.y,
+          width: 15, height: 15
+        });
       }
 
       function spawnCloud() {
-        const c = new EngineObject(randInCircle(vec2(0,0), WORLD_SIZE), vec2(1.2, 1.2));
-        c.color = new Color(0.8, 0.8, 0.8);
-        c.type = 'cloud';
-        c.velocity = randInCircle(vec2(0,0), 0.015);
-        clouds.push(c);
+        clouds.push({
+          x: Math.random() * WORLD_SIZE.x * 2 - WORLD_SIZE.x,
+          y: Math.random() * WORLD_SIZE.y * 2 - WORLD_SIZE.y,
+          width: 30, height: 30,
+          vx: Math.random() * 20 - 10,
+          vy: Math.random() * 20 - 10,
+          rotation: 0
+        });
+      }
+      
+      // NEW: Spawn a spinner
+      function spawnSpinner() {
+        spinners.push({
+          x: Math.random() * WORLD_SIZE.x * 2 - WORLD_SIZE.x,
+          y: Math.random() * WORLD_SIZE.y * 2 - WORLD_SIZE.y,
+          width: 25, height: 25,
+          vx: Math.random() * 30 - 15,
+          vy: Math.random() * 30 - 15,
+          rotation: 0,
+          rotationSpeed: Math.random() * 2 - 1
+        });
       }
 
-      function resetGame() {
-        try {
-          coins = [];
-          clouds = [];
-          score = 0;
-          timeLeft = 60;
-          running = true;
-          player.pos = vec2(0,0);
-          for (let i = 0; i < 8; i++) spawnCoin();
-          for (let i = 0; i < 4; i++) spawnCloud();
-        } catch (e) {
-          logToHTML(`Error in resetGame: ${e.message}`, true);
+      // Collision detection for rectangles
+      function AABB(a, b) {
+        return a.x - a.width/2 < b.x + b.width/2 &&
+               a.x + a.width/2 > b.x - b.width/2 &&
+               a.y - a.height/2 < b.y + b.height/2 &&
+               a.y + a.height/2 > b.y - b.height/2;
+      }
+
+      function update(deltaTime) {
+        if (gameState !== 'playing' || !player) return;
+
+        // NEW: Difficulty increases as time runs out
+        // Starts at 1.0, goes up to 3.0 at 0 seconds
+        const difficultyMultiplier = 1 + (2 * (60 - timeLeft) / 60);
+
+        // --- Input ---
+        if (!isDragging) {
+          const speed = 200; // pixels per second
+          if (keys['ArrowLeft'] || keys['KeyA']) player.x -= speed * deltaTime;
+          if (keys['ArrowRight'] || keys['KeyD']) player.x += speed * deltaTime;
+          if (keys['ArrowUp'] || keys['KeyW']) player.y -= speed * deltaTime;
+          if (keys['ArrowDown'] || keys['KeyS']) player.y += speed * deltaTime;
         }
-      }
 
-      function gameUpdate() {
-        if (!running) return;
+        // Clamp player to world
+        player.x = Math.max(-WORLD_SIZE.x + player.width/2, Math.min(WORLD_SIZE.x - player.width/2, player.x));
+        player.y = Math.max(-WORLD_SIZE.y + player.height/2, Math.min(WORLD_SIZE.y - player.height/2, player.y));
 
-        const speed = 0.07;
-        const move = vec2(
-          (keyIsDown(39) || keyIsDown(68)) - (keyIsDown(37) || keyIsDown(65)),
-          (keyIsDown(38) || keyIsDown(87)) - (keyIsDown(40) || keyIsDown(83))
-        );
-        player.pos = player.pos.add(move.scale(speed));
+        // Handle hit flash
+        if (playerHitTimer > 0) {
+          playerHitTimer -= deltaTime;
+          player.color = '#f00'; 
+        } else {
+          player.color = '#0f0';
+        }
+        if (scoreFlashTimer > 0) {
+          scoreFlashTimer -= deltaTime;
+        }
 
-        coins.forEach(c => {
-          if (player.pos.distance(c.pos) < 1) {
+        // Coin collision
+        for (let i = coins.length - 1; i >= 0; i--) {
+          if (AABB(player, coins[i])) {
             score += 10;
-            sCoin.play();
-            c.pos = randInCircle(vec2(0,0), WORLD_SIZE);
+            playBeep(600, 0.05);
+            coins.splice(i, 1);
+            spawnCoin();
           }
-        });
+        }
 
-        clouds.forEach(c => {
-          c.pos = c.pos.add(c.velocity);
-          if (Math.abs(c.pos.x) > WORLD_SIZE || Math.abs(c.pos.y) > WORLD_SIZE)
-            c.velocity = c.velocity.neg();
-          if (player.pos.distance(c.pos) < 1) {
+        // Cloud behavior
+        for (const c of clouds) {
+          c.x += c.vx * deltaTime * difficultyMultiplier; // Gets faster
+          c.y += c.vy * deltaTime * difficultyMultiplier;
+          c.rotation += deltaTime * 0.5 * difficultyMultiplier;
+          if (c.x > WORLD_SIZE.x - c.width/2 || c.x < -WORLD_SIZE.x + c.width/2) c.vx *= -1;
+          if (c.y > WORLD_SIZE.y - c.height/2 || c.y < -WORLD_SIZE.y + c.height/2) c.vy *= -1;
+
+          if (playerHitTimer <= 0 && AABB(player, c)) {
             score = Math.max(0, score - 15);
-            sHit.play();
+            playBeep(200, 0.1);
+            playerHitTimer = 0.5;
+            scoreFlashTimer = 0.5;
           }
-        });
+        }
+        
+        // NEW: Spinner behavior
+        for (const s of spinners) {
+          s.x += s.vx * deltaTime * difficultyMultiplier; // Gets faster
+          s.y += s.vy * deltaTime * difficultyMultiplier;
+          s.rotation += s.rotationSpeed * deltaTime * difficultyMultiplier;
+          if (s.x > WORLD_SIZE.x - s.width/2 || s.x < -WORLD_SIZE.x + s.width/2) s.vx *= -1;
+          if (s.y > WORLD_SIZE.y - s.height/2 || s.y < -WORLD_SIZE.y + s.height/2) s.vy *= -1;
 
-        timeLeft -= timeDelta;
+          if (playerHitTimer <= 0 && AABB(player, s)) {
+            score = Math.max(0, score - 25); // More penalty
+            playBeep(150, 0.15);
+            playerHitTimer = 0.5;
+            scoreFlashTimer = 0.5;
+          }
+        }
+
+        // Timer
+        timeLeft -= deltaTime;
         if (timeLeft <= 0) {
-          running = false;
+          timeLeft = 0;
+          gameState = 'gameover';
+          logToHTML(`Game Over! Final Score: ${score}`);
+          addScoreToLeaderboard(username, score);
+          displayLeaderboard();
           showEndGameModal(score);
         }
       }
 
-      function gameUpdatePost() {}
+      function render() {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+        ctx.save();
+        ctx.translate(GAME_WIDTH / 2, GAME_HEIGHT / 2);
 
-      function gameRender() {
-        const scorePos = vec2(-cameraScale * 0.4, cameraScale * 0.45);
-        const timePos = vec2(cameraScale * 0.2, cameraScale * 0.45);
+        // Draw Player
+        if (player) {
+          ctx.fillStyle = player.color;
+          ctx.fillRect(player.x - player.width/2, player.y - player.height/2, player.width, player.height);
+        }
 
-        drawText(`Score: ${score}`, scorePos, 1.2, new Color(0,1,0));
-        drawText(`Time: ${Math.ceil(timeLeft)}`, timePos, 1.2, new Color(1,1,1));
+        // Draw Coins (Circles)
+        ctx.fillStyle = '#ff0';
+        for (const c of coins) {
+          ctx.beginPath();
+          // *** FIX: Changed c.Y to c.y ***
+          ctx.arc(c.x, c.y, c.width / 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
-        if (!running) {
-          // *** FIX: Moved text up so it's not hidden by the player ***
-          drawTextCentered('Press Start', vec2(0,2), 2, new Color(1,1,1));
+        // Draw Clouds (Polygons)
+        for (const c of clouds) {
+          ctx.save();
+          ctx.translate(c.x, c.y);
+          ctx.rotate(c.rotation);
+          drawSpikyShape(c.width, '#888');
+          ctx.restore();
+        }
+        
+        // Draw Spinners (Rectangles)
+        for (const s of spinners) {
+          ctx.save();
+          ctx.translate(s.x, s.y);
+          ctx.rotate(s.rotation);
+          ctx.fillStyle = '#f00';
+          ctx.fillRect(-s.width/2, -s.height/2, s.width, s.height);
+          ctx.restore();
+        }
+        
+        ctx.restore();
+
+        // Draw UI
+        ctx.fillStyle = scoreFlashTimer > 0 ? '#f00' : '#0f0';
+        ctx.font = '24px monospace';
+        ctx.fillText(`Score: ${score}`, 20, 50);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = '24px monospace';
+        ctx.fillText(`Time: ${Math.ceil(timeLeft)}`, GAME_WIDTH - 120, 50);
+        
+        if (gameState === 'menu' && !player) {
+          ctx.fillStyle = 'white';
+          ctx.font = '30px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('Main Menu', GAME_WIDTH / 2, GAME_HEIGHT / 2 + 30);
+          ctx.textAlign = 'left';
+        }
+        if (gameState === 'paused') {
+          ctx.fillStyle = 'white';
+          ctx.font = '40px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('PAUSED', GAME_WIDTH / 2, GAME_HEIGHT / 2);
+          ctx.textAlign = 'left';
         }
       }
+      
+      // NEW: Helper function to draw the spiky cloud
+      function drawSpikyShape(size, color) {
+        const radius = size / 2;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(0, -radius);
+        for (let i = 1; i < 8; i++) {
+          let r = (i % 2 === 0) ? radius : radius * 0.5;
+          let angle = i * Math.PI / 4;
+          ctx.lineTo(r * Math.sin(angle), -r * Math.cos(angle));
+        }
+        ctx.closePath();
+        ctx.fill();
+      }
 
-      function gameRenderPost() {}
+      // --- Main Game Loop ---
+      function gameLoop(timestamp) {
+        requestAnimationFrame(gameLoop);
+        const deltaTime = (timestamp - lastTime) / 1000;
+        lastTime = timestamp;
 
-      function drawTextCentered(text, pos, size = 1, color = new Color(1,1,1)) {
-        const width = text.length * size * 0.6;
-        drawText(text, vec2(pos.x - width / 2, pos.y), size, color);
+        if (gameState === 'playing') {
+          update(deltaTime || 0);
+        }
+        render();
       }
 
       // --- Gemini API Functions ---
@@ -346,19 +644,11 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
-
-          if (!response.ok) {
-            throw new Error(`API Error: ${response.statusText}`);
-          }
-
+          if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
           const result = await response.json();
           const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-          if (text) {
-            return text;
-          } else {
-            throw new Error("Invalid response structure from API.");
-          }
+          if (text) return text;
+          throw new Error("Invalid response structure from API.");
         } catch (error) {
           logToHTML(`Gemini API fetch error: ${error.message}`, true);
           if (retries > 0) {
@@ -370,25 +660,93 @@
         }
       }
 
+      // --- Touch Controls ---
+      function getTouchPos(canvasEl, touchEvent) {
+        const rect = canvasEl.getBoundingClientRect();
+        const touch = touchEvent.touches[0];
+        const scaleX = canvasEl.width / rect.width;
+        const scaleY = canvasEl.height / rect.height;
+        const canvasX = (touch.clientX - rect.left) * scaleX;
+        const canvasY = (touch.clientY - rect.top) * scaleY;
+        const worldX = canvasX - GAME_WIDTH / 2;
+        const worldY = canvasY - GAME_HEIGHT / 2;
+        return { x: worldX, y: worldY };
+      }
+
+      canvas.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if(audioCtx.state === 'suspended') { audioCtx.resume(); }
+        if (gameState !== 'playing' || !player) return;
+        const pos = getTouchPos(canvas, e);
+        if (Math.abs(pos.x - player.x) < player.width*1.5 && Math.abs(pos.y - player.y) < player.height*1.5) {
+          isDragging = true;
+          touchOffset.x = player.x - pos.x;
+          touchOffset.y = player.y - pos.y;
+        }
+      }, { passive: false });
+
+      canvas.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        if (gameState !== 'playing' || !isDragging) return;
+        const pos = getTouchPos(canvas, e);
+        player.x = pos.x + touchOffset.x;
+        player.y = pos.y + touchOffset.y;
+      }, { passive: false });
+
+      canvas.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        isDragging = false;
+      }, { passive: false });
+
+
       // --- Attach button listeners ---
-      document.getElementById('startBtn').onclick = () => {
+      
+      // Main Menu
+      startGameBtn.onclick = () => {
+        if(audioCtx.state === 'suspended') { audioCtx.resume(); }
+        username = usernameInput.value || "Player1";
+        mainMenuOverlay.style.display = 'none';
         resetGame();
       };
+      
+      helpBtn.onclick = () => {
+        helpOverlay.style.display = 'flex';
+      };
+      
+      helpCloseBtn.onclick = () => {
+        helpOverlay.style.display = 'none';
+      };
 
+      soundBtn.onclick = () => {
+        isMuted = !isMuted;
+        soundBtn.textContent = isMuted ? "Unmute" : "Mute";
+        soundBtn.classList.toggle('button-secondary', isMuted);
+      };
+
+      // In-Game UI
+      pauseBtn.onclick = () => {
+        if (gameState === 'playing') {
+          gameState = 'paused';
+          pauseBtn.textContent = 'Resume';
+        } else if (gameState === 'paused') {
+          gameState = 'playing';
+          pauseBtn.textContent = 'Pause';
+          lastTime = performance.now(); // Reset time to avoid a jump
+        }
+      };
+
+      // Game Over Modal
       playAgainBtn.onclick = () => {
         modalOverlay.style.display = 'none';
-        resetGame();
+        mainMenuOverlay.style.display = 'flex';
+        displayLeaderboard();
       };
-
-      // *** THE FIX: The texture sheet URL must be in an array ***
-      engineInit(
-        gameInit, 
-        gameUpdate, 
-        gameUpdatePost, 
-        gameRender, 
-        gameRenderPost,
-        ['https://unpkg.com/littlejsengine@latest/dist/engine/littlejs.png']
-      );
+      
+      logToHTML('DOM Loaded. Initializing game...');
+      displayLeaderboard();
+      
+      // Start the game loop (it will just render the menu state)
+      requestAnimationFrame(gameLoop);
 
     } catch (e) {
       logToHTML(`Critical Script Error: ${e.message}`, true);
