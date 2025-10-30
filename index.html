@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FartCoin Dash 2D — OGP + LittleJS</title>
+<style>
+  html,body{margin:0;height:100%;background:#0d1417;color:#cff6da;font-family:Inter,system-ui,sans-serif;overflow:hidden}
+  #overlay{position:fixed;top:0;left:0;right:0;padding:10px;display:flex;justify-content:space-between;align-items:center;font-size:14px;background:rgba(0,0,0,0.4)}
+  .btn{background:#3af78a;border:none;padding:6px 10px;border-radius:6px;color:#012e1c;cursor:pointer;font-weight:600}
+  #gameDiv{width:100vw;height:100vh}
+</style>
+<script src="https://unpkg.com/littlejsengine/dist/littlejs.min.js"></script>
+<script defer src="game.js"></script>
+</head>
+<body>
+  <div id="overlay">
+    <div>💨 <b>FartCoin Dash</b> — Collect 💰 avoid ☁️</div>
+    <div>
+      <button id="connectBtn" class="btn">Connect Wallet</button>
+      <button id="startBtn" class="btn">Start</button>
+    </div>
+  </div>
+  <div id="gameDiv"></div>
+</body>
+</html>
